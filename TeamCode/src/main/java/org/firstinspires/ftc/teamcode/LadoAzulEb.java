@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Autonomous(name = "LadoAzulEb", group = "Competition")
-public class LadoAzulEb extends LinearOpMode {
+public class teste extends LinearOpMode {
     private static final double SHOOTER_LIMIT = 1.2;
 
     private DcMotor esq_f;
@@ -99,7 +99,9 @@ public class LadoAzulEb extends LinearOpMode {
     private void girar(double power, long tempoMs) { setDrivePower(power, -power, power, -power, tempoMs); }
 
     private void disparar() {
-        lancador.setPower(-SHOOTER_LIMIT);
+        lancador.setPower(-SHOOTER_LIMIT);LadoAzulEb
+        sleep(gamepad1.nextRumbleApproxFinishTime);
+        elastico.sd
         sleep(1200);
         lancador.setPower(0);
     }
@@ -175,7 +177,7 @@ public class LadoAzulEb extends LinearOpMode {
             telemetry.addData("Alvo Cor", colorProcessor.getPosicao());
             telemetry.addData("Dist Cor", colorProcessor.getDistanciaCm());
             telemetry.addData("Yaw", imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES));
-            
+
             boolean tagVisivel = false;
             for(AprilTagDetection d : aprilTag.getDetections()) {
                 if(d.id == ALVO_APRILTAG) tagVisivel = true;
