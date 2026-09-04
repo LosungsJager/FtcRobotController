@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 
 @TeleOp(name="servo_do_roger", group="Linear OpMode")
-public class servo_do_roger extends LinearOpMode {
+public class Servo_do_Roger extends LinearOpMode {
 
     private Servo rampa;
 

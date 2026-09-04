@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
 @TeleOp(name = "Lançador", group = "Competition")
-public class Lançador extends LinearOpMode {
+public class Camera extends LinearOpMode {
 
     private DcMotor launcher;
     private DcMotor escovas;

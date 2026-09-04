@@ -73,7 +73,7 @@ public class teste_rodas extends LinearOpMode {
 
             double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1);
             double esq_fPower = (rotY - rotX - rx) / denominator;
-            double esq_tPower = (rotY + rotX/1.4 - rx) / denominator;
+            double esq_tPower = (rotY + rotX - rx) / denominator;
             double dir_fPower = (rotY + rotX + rx) / denominator;
             double dir_tPower = (-rotY + rotX - rx) / denominator;
 

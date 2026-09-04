@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 @TeleOp
-public class esmeralda extends LinearOpMode {
+public class esmeraldaUltima extends LinearOpMode {
     public DcMotor esq_f, dir_f, esq_t, dir_t, lancador, elastico = null;
     private IMU imu;
     private static final double LIMIT = 0.55;

@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+/*package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.bosch.BHI260IMU;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
@@ -301,3 +301,4 @@ public class teste extends LinearOpMode {
         public double getDistanciaCm() { return distanciaCm; }
     }
 }
+*/
