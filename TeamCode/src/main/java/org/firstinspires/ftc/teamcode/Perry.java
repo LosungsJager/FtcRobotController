@@ -34,12 +34,12 @@ public class Perry extends LinearOpMode {
 
     private static final double ZONA_MORTA = 0.06;
 
-    private static final double LIMITE_POTENCIA_INTAKE = -0.75;   // 0.0 a 1.0
+    private static final double LIMITE_POTENCIA_INTAKE = -0.95;   // 0.0 a 1.0
 
     private static final double GANHO_CORRECAO = 0.2;
     private static final double GIRO_MAX_CORRECAO = 0.2;
 
-    private DcMotorEx esq_f, esq_t, dir_f, dir_t, col;   // esquerda/direita, frente/trás
+    private DcMotorEx esq_f, esq_t, dir_f, dir_t, giro1, giro2;   // esquerda/direita, frente/trás
     private GoBildaPinpointDriver pinpoint;
 
     private boolean fieldCentric = false;
@@ -78,24 +78,25 @@ public class Perry extends LinearOpMode {
         esq_t = hardwareMap.get(DcMotorEx.class, "esq_t");
         dir_f = hardwareMap.get(DcMotorEx.class, "dir_f");
         dir_t = hardwareMap.get(DcMotorEx.class, "dir_t");
-        col = hardwareMap.get(DcMotorEx.class, "col");
+        giro1 = hardwareMap.get(DcMotorEx.class, "giro1");
+        giro2 = hardwareMap.get(DcMotorEx.class, "giro2");
+
 
         // lado esquerdo gira invertido
         esq_f.setDirection(DcMotorSimple.Direction.REVERSE);
         esq_t.setDirection(DcMotorSimple.Direction.REVERSE);
         dir_f.setDirection(DcMotorSimple.Direction.FORWARD);
         dir_t.setDirection(DcMotorSimple.Direction.FORWARD);
-        col.setDirection(DcMotorSimple.Direction.FORWARD);
+        giro1.setDirection(DcMotorSimple.Direction.REVERSE);
+        giro2.setDirection(DcMotorSimple.Direction.FORWARD);
 
-        for (DcMotorEx m : new DcMotorEx[]{esq_f, esq_t, dir_f, dir_t}) {
+        for (DcMotorEx m : new DcMotorEx[]{esq_f, esq_t, dir_f, dir_t, giro1, giro2}) {
             m.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             m.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
             m.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
 
-        col.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        col.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
 
@@ -135,7 +136,7 @@ public class Perry extends LinearOpMode {
             pinpoint.resetPosAndIMU();
         }
     }
-
+    
     private void dirigir() {
 
         double avanco = -gamepad1.left_stick_y;
@@ -210,10 +211,17 @@ public class Perry extends LinearOpMode {
 
     private void controlarIntake() {
         if (gamepad1.right_bumper) {
-            col.setPower(LIMITE_POTENCIA_INTAKE);
+            giro1.setPower(LIMITE_POTENCIA_INTAKE);
+            //giro2.setPower(LIMITE_POTENCIA_INTAKE);
         } else {
-            col.setPower(0.0);
+            giro1.setPower(0.0);
+            //giro2.setPower(0.0);
         }
+        if (gamepad1.left_bumper) {
+            giro2.setPower(LIMITE_POTENCIA_INTAKE);
+        } else {
+            giro2.setPower(0.0);
+            }
     }
 
     private double zonaMorta(double valor) {
@@ -251,7 +259,7 @@ public class Perry extends LinearOpMode {
         telemetry.addData("Heading-lock", travandoHeading ? "ATIVO (corrigindo)" : "livre (girando)");
         telemetry.addLine();
         telemetry.addData("Coletor", gamepad1.right_bumper ? "GIRANDO" : "parado");
-        telemetry.addData("Limite de potência do coletor", "%.0f%%", LIMITE_POTENCIA_INTAKE * 100);
+        telemetry.addData("Limite de potência do lançador", "%.0f%%", LIMITE_POTENCIA_INTAKE * 100);
         telemetry.update();
     }
 }
