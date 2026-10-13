@@ -17,7 +17,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
  *
  * ATENÇÃO: offsets e direções dos encoders do Pinpoint, direções dos motores
  * e posição neutra do servo devem ser confirmados no robô real antes de competir.
- * A redução total não é necessária para o controle por potência deste OpMode.
+ * Motores de tração: REV HD Hex 41 (1291), com redução externa 5:1.
+ * A redução não altera diretamente o comando de potência; cálculos de velocidade
+ * e encoders devem considerar a redução e as especificações das rodas/encoders.
  */
 @TeleOp(name = "Lösungsjäger - TeleOp Completo", group = "Lösungsjäger")
 public class LJTeleOpCompleto extends LinearOpMode {
@@ -62,7 +64,8 @@ public class LJTeleOpCompleto extends LinearOpMode {
         telemetry.addLine("Lösungsjäger TeleOp integrado pronto.");
         telemetry.addLine("Mantenha o robô imóvel durante a calibração inicial.");
         telemetry.addLine("Confirme direções dos motores, offsets e pods antes de dirigir.");
-        telemetry.addData("Redução total", "A confirmar (não usada no controle por potência)");
+        telemetry.addData("Motor de tração", "REV HD Hex 41 (1291)");
+        telemetry.addData("Redução externa", "5:1");
         telemetry.update();
 
         waitForStart();
