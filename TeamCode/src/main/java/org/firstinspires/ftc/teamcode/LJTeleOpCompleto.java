@@ -12,26 +12,16 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
-/**
- * TeleOp integrado da Lösungsjäger.
- *
- * ATENÇÃO: offsets e direções dos encoders do Pinpoint, direções dos motores
- * e posição neutra do servo devem ser confirmados no robô real antes de competir.
- * Motores de tração: REV HD Hex 41 (1291), com redução externa 5:1.
- * A redução não altera diretamente o comando de potência; cálculos de velocidade
- * e encoders devem considerar a redução e as especificações das rodas/encoders.
- */
-@TeleOp(name = "Lösungsjäger - TeleOp Completo", group = "Lösungsjäger")
+@TeleOp(name = "BIOBUZZ2027", group = "Lösungsjäger")
 public class LJTeleOpCompleto extends LinearOpMode {
 
-    // Limites conservadores iniciais; ajuste após testes de bancada.
     private static final double DRIVE_MAX = 0.70;
     private static final double DRIVE_PRECISION = 0.35;
     private static final double COLLECTOR_MAX = 0.50;
     private static final double LAUNCHER_MAX = 0.55;
     private static final double STICK_DEADBAND = 0.05;
 
-    // Calibração do Pinpoint: substituir pelos offsets medidos no robô (mm).
+    // medir no robo
     private static final double PINPOINT_X_OFFSET_MM = 0.0;
     private static final double PINPOINT_Y_OFFSET_MM = 0.0;
 
@@ -61,11 +51,9 @@ public class LJTeleOpCompleto extends LinearOpMode {
         mapHardware();
         configureHardware();
 
-        telemetry.addLine("Lösungsjäger TeleOp integrado pronto.");
-        telemetry.addLine("Mantenha o robô imóvel durante a calibração inicial.");
-        telemetry.addLine("Confirme direções dos motores, offsets e pods antes de dirigir.");
-        telemetry.addData("Motor de tração", "REV HD Hex 41 (1291)");
-        telemetry.addData("Redução externa", "5:1");
+        telemetry.addLine("TeleOp integrado pronto.");
+        telemetry.addLine("pera.");
+        telemetry.addLine("ve se ta certo.");
         telemetry.update();
 
         waitForStart();
@@ -104,13 +92,11 @@ public class LJTeleOpCompleto extends LinearOpMode {
     }
 
     private void configureHardware() {
-        // Padrão existente no Perry.java: esquerda invertida, direita normal.
         esq_f.setDirection(DcMotorSimple.Direction.REVERSE);
         esq_t.setDirection(DcMotorSimple.Direction.REVERSE);
         dir_f.setDirection(DcMotorSimple.Direction.FORWARD);
         dir_t.setDirection(DcMotorSimple.Direction.FORWARD);
 
-        // Direções dos mecanismos são hipóteses iniciais; valide individualmente.
         coletor.setDirection(DcMotorSimple.Direction.FORWARD);
         lan1.setDirection(DcMotorSimple.Direction.FORWARD);
         lan2.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -122,7 +108,6 @@ public class LJTeleOpCompleto extends LinearOpMode {
             motor.setPower(0.0);
         }
 
-        // Não resetamos encoders dos motores: este TeleOp não usa seus ticks.
         pinpoint.setOffsets(
                 PINPOINT_X_OFFSET_MM,
                 PINPOINT_Y_OFFSET_MM,
@@ -136,11 +121,9 @@ public class LJTeleOpCompleto extends LinearOpMode {
                 GoBildaPinpointDriver.EncoderDirection.FORWARD
         );
 
-        // O robô deve estar parado ao zerar a orientação/pose do Pinpoint.
         pinpoint.resetPosAndIMU();
 
-        // Servo posicional: posição inicial provisória; confira o mecanismo
-        // e a folga mecânica antes de habilitar o servo no robô montado.
+        // deve ta errado
         servoPosition = clip(servoPosition, 0.0, 1.0);
         serv.setPosition(servoPosition);
     }
@@ -154,7 +137,7 @@ public class LJTeleOpCompleto extends LinearOpMode {
 
         boolean optionsNow = gamepad1.options;
         if (optionsNow && !previousOptions) {
-            // Pressione somente com o robô imóvel para redefinir a referência.
+            // so se o robo ta parado
             pinpoint.resetPosAndIMU();
         }
         previousOptions = optionsNow;
@@ -175,7 +158,7 @@ public class LJTeleOpCompleto extends LinearOpMode {
             forward = fieldForward;
         }
 
-        // Mixagem mecanum; normalização mantém todas as potências em [-1, 1].
+        // manter em [-1, 1].
         double pEsqF = forward + strafe + turn;
         double pEsqT = forward - strafe + turn;
         double pDirF = forward - strafe - turn;
@@ -200,11 +183,9 @@ public class LJTeleOpCompleto extends LinearOpMode {
     }
 
     private void controlMechanisms() {
-        // Gamepad 2: coletor independente, controle proporcional no stick esquerdo.
         double collectorPower = applyDeadband(-gamepad2.left_stick_y) * COLLECTOR_MAX;
         coletor.setPower(clip(collectorPower, -COLLECTOR_MAX, COLLECTOR_MAX));
 
-        // Lançador 1: RT gira para frente; A solicita reversão.
         double launch1Power = 0.0;
         if (gamepad2.right_trigger > 0.05) {
             launch1Power = gamepad2.right_trigger * LAUNCHER_MAX;
@@ -213,7 +194,6 @@ public class LJTeleOpCompleto extends LinearOpMode {
         }
         lan1.setPower(clip(launch1Power, -LAUNCHER_MAX, LAUNCHER_MAX));
 
-        // Lançador 2: LT gira para frente; B solicita reversão.
         double launch2Power = 0.0;
         if (gamepad2.left_trigger > 0.05) {
             launch2Power = gamepad2.left_trigger * LAUNCHER_MAX;
@@ -222,7 +202,7 @@ public class LJTeleOpCompleto extends LinearOpMode {
         }
         lan2.setPower(clip(launch2Power, -LAUNCHER_MAX, LAUNCHER_MAX));
 
-        // Servo posicional ajustável em pequenos passos e limitado a [0, 1].
+        //seervo [0, 1].
         boolean dpadLeftNow = gamepad2.dpad_left;
         boolean dpadRightNow = gamepad2.dpad_right;
         boolean xNow = gamepad2.x;
@@ -249,15 +229,15 @@ public class LJTeleOpCompleto extends LinearOpMode {
         Pose2D pose = pinpoint.getPosition();
 
         telemetry.addData("Modo de direção", fieldCentric ? "Field-centric" : "Robot-centric");
-        telemetry.addData("Potência máxima rodas", "%.0f%%", DRIVE_MAX * 100.0);
+        telemetry.addData("Pot. rodas", "%.0f%%", DRIVE_MAX * 100.0);
         telemetry.addData("Precisão", gamepad1.left_bumper ? "ATIVA" : "inativa");
         telemetry.addData("Pinpoint status", pinpoint.getDeviceStatus());
         telemetry.addData("X", "%.1f mm", pose.getX(DistanceUnit.MM));
         telemetry.addData("Y", "%.1f mm", pose.getY(DistanceUnit.MM));
         telemetry.addData("Heading", "%.1f deg", pose.getHeading(AngleUnit.DEGREES));
         telemetry.addData("Coletor potência", "%.2f", coletor.getPower());
-        telemetry.addData("Lançador 1 potência", "%.2f", lan1.getPower());
-        telemetry.addData("Lançador 2 potência", "%.2f", lan2.getPower());
+        telemetry.addData("Lan.1 pot.", "%.2f", lan1.getPower());
+        telemetry.addData("Lan.2 pot.", "%.2f", lan2.getPower());
         telemetry.addData("Servo posição", "%.2f", servoPosition);
         telemetry.addLine("G1: sticks=movimento, Y=field-centric, LB=precisão, OPTIONS=reset Pinpoint");
         telemetry.addLine("G2: LS=coletor, RT/A=lan1, LT/B=lan2, D-pad L/R=servo, X=servo centro");
