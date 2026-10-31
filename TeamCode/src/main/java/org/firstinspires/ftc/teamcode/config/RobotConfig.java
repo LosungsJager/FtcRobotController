@@ -13,12 +13,13 @@ public final class RobotConfig {
         public static final String RIGHT_FRONT = "dir_f";
         public static final String RIGHT_REAR = "dir_t";
         public static final String INTAKE = "coletor";
-        public static final String PINPOINT = "Pinpoint";
+        // Existing team code (Perry.java) uses the lower-case configuration name.
+        public static final String PINPOINT = "pinpoint";
     }
 
     public static final class Drive {
         private Drive() {}
-        // Validate these directions with the drivetrain lifted before driving.
+        // Inherited from Perry.java; validate with the drivetrain lifted.
         public static final DcMotorSimple.Direction LEFT_DIRECTION =
                 DcMotorSimple.Direction.REVERSE;
         public static final DcMotorSimple.Direction RIGHT_DIRECTION =
@@ -35,8 +36,7 @@ public final class RobotConfig {
     public static final class Motor {
         private Motor() {}
         // REV HD Hex 41 (1291) with an external 5:1 reduction.
-        // Encoder conversion is intentionally not used until wheel diameter and
-        // encoder mode/resolution are confirmed.
+        // Encoder-to-distance conversion is not enabled in the drivetrain yet.
         public static final double EXTERNAL_REDUCTION = 5.0;
     }
 }
