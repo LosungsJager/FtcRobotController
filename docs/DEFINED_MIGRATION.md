@@ -7,21 +7,17 @@
 - Move 29 legacy Java OpModes outside the Android Gradle main source set.
 - Add a Defined-based Robot lifecycle, Drive and Intake subsystems, reusable Intake Actions, and primary TeleOp.
 - Add a Pinpoint adapter and a sensor-only diagnostics OpMode.
+- Add GitHub Actions compilation of the TeamCode module.
 
-## Pinpoint calibration still required
+## Pinpoint configuration migrated from Perry.java
 
-The HardwareMap name `Pinpoint` is confirmed. The following physical values are not yet known and are intentionally not guessed:
+The old team OpMode used HardwareMap name `pinpoint`, goBILDA 4-Bar pods, offsets 0.0 mm / 0.0 mm, and both encoder directions FORWARD. These settings are now centralized in `PinpointLocalizer`.
 
-- Odometry pod model (goBILDA Swingarm or 4-Bar, or a different pod).
-- X pod offset from robot tracking center (mm).
-- Y pod offset from robot tracking center (mm).
-- X encoder direction and Y encoder direction.
-
-Until these are configured, diagnostics reports raw encoder ticks and heading only. Do not use X/Y displacement for autonomous navigation yet.
+The settings are inherited from existing code, not newly measured. Re-check the mechanical installation and offsets before relying on field coordinates. The diagnostics OpMode displays X/Y in millimeters, heading, raw encoder counts, frequency, and loop time.
 
 ## Compatibility and build
 
-Defined 0.3.1 is added alongside the existing FTC SDK 12.0.0 dependencies. The upstream Defined Quickstart uses SDK 11.2.0, so this combination needs an actual Gradle compile check. The branch includes an Android build workflow to run that check on GitHub Actions.
+Defined 0.3.1 is added alongside the existing FTC SDK 12.0.0 dependencies. The upstream Defined Quickstart uses SDK 11.2.0, so this combination is validated by the GitHub Actions compile workflow in this branch rather than assumed compatible.
 
 ## Safety
 
