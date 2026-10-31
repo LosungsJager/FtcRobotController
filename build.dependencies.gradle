@@ -1,9 +1,12 @@
 repositories {
     mavenCentral()
-    google() // Needed for androidx
+    google()
+    // Defined action engine (third-party library).
+    maven { url = 'https://cstahie.github.io/defined' }
 }
 
 dependencies {
+    // FTC SDK version retained from the existing project.
     implementation 'org.firstinspires.ftc:Inspection:12.0.0'
     implementation 'org.firstinspires.ftc:Blocks:12.0.0'
     implementation 'org.firstinspires.ftc:RobotCore:12.0.0'
@@ -13,5 +16,8 @@ dependencies {
     implementation 'org.firstinspires.ftc:FtcCommon:12.0.0'
     implementation 'org.firstinspires.ftc:Vision:12.0.0'
     implementation 'androidx.appcompat:appcompat:1.2.0'
-}
 
+    // Defined 0.3.1. Compatibility with FTC SDK 12.0.0 must be verified by build.
+    implementation 'com.teamundefined:defined-core:0.3.1'
+    implementation 'com.teamundefined:defined-ftc:0.3.1'
+}
