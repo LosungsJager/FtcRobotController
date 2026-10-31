@@ -24,12 +24,13 @@ public final class PinpointDiagnostics extends LinearOpMode {
         while (opModeIsActive()) {
             localizer.update();
 
+            telemetry.addData("X (mm)", "%.1f", localizer.getXMillimeters());
+            telemetry.addData("Y (mm)", "%.1f", localizer.getYMillimeters());
             telemetry.addData("Heading (deg)", "%.2f", localizer.getHeadingDegrees());
             telemetry.addData("Forward encoder (ticks)", localizer.getForwardEncoderTicks());
             telemetry.addData("Strafe encoder (ticks)", localizer.getStrafeEncoderTicks());
             telemetry.addData("Pinpoint frequency (Hz)", "%.1f", localizer.getFrequencyHz());
             telemetry.addData("Pinpoint loop (us)", localizer.getLoopTimeMicros());
-            telemetry.addLine("X/Y in mm are intentionally hidden until pod resolution is configured.");
             telemetry.update();
             idle();
         }
