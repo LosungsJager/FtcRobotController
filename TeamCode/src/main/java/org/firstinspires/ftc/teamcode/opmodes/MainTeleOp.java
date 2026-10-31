@@ -16,7 +16,7 @@ public final class MainTeleOp extends RobotOpMode<Robot> {
 
     @Override
     protected void onRobotInit() {
-        robot = createRobot();
+        // RobotOpMode already called createRobot() and robot.init() before this hook.
         runner.addMonitor(IntakeActions.toggle(robot, () -> gamepad1.aWasReleased()));
     }
 
