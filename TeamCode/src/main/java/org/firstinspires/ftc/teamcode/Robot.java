@@ -2,10 +2,10 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.teamundefined.defined.ftc.RobotOpMode;
 
 import org.firstinspires.ftc.teamcode.subsystems.Drive;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
+import org.firstinspires.ftc.teamcode.subsystems.PinpointLocalizer;
 
 import java.util.List;
 
@@ -16,12 +16,14 @@ import java.util.List;
 public final class Robot extends com.teamundefined.defined.ftc.Robot {
     public final Drive drive;
     public final Intake intake;
+    public final PinpointLocalizer localization;
 
     private final List<LynxModule> hubs;
 
     public Robot(HardwareMap hardwareMap) {
         drive = new Drive(hardwareMap);
         intake = new Intake(hardwareMap);
+        localization = new PinpointLocalizer(hardwareMap);
 
         hubs = hardwareMap.getAll(LynxModule.class);
         for (LynxModule hub : hubs) {
@@ -50,6 +52,7 @@ public final class Robot extends com.teamundefined.defined.ftc.Robot {
         for (LynxModule hub : hubs) {
             hub.clearBulkCache();
         }
+        localization.update();
     }
 
     @Override

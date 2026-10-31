@@ -5,24 +5,27 @@
 - Preserve the repository's FTC SDK 12.0.0 dependency versions.
 - Add Defined Core and FTC 0.3.1 dependencies.
 - Move 29 legacy Java OpModes outside the Android Gradle main source set.
-- Add a first active Robot, Drive, Intake, IntakeActions, and TeleOp structure.
-- Keep the `master` branch unchanged.
+- Add a Defined-based Robot lifecycle, Drive and Intake subsystems, reusable Intake Actions, and primary TeleOp.
+- Add a Pinpoint adapter and a sensor-only diagnostics OpMode.
 
-## Deliberately not implemented yet
+## Pinpoint calibration still required
 
-- Pinpoint driver initialization and localization actions.
-- Autonomous routes and path following.
-- Encoder distance conversion.
-- Any unconfirmed servo, launcher, or other mechanism.
-- Automated build validation in this environment.
+The HardwareMap name `Pinpoint` is confirmed. The following physical values are not yet known and are intentionally not guessed:
 
-## Compatibility note
+- Odometry pod model (goBILDA Swingarm or 4-Bar, or a different pod).
+- X pod offset from robot tracking center (mm).
+- Y pod offset from robot tracking center (mm).
+- X encoder direction and Y encoder direction.
 
-The Defined Quickstart uses FTC SDK 11.2.0 while this repository currently uses 12.0.0. This branch keeps 12.0.0 and adds Defined 0.3.1, but a Gradle build must verify binary/API compatibility before merging.
+Until these are configured, diagnostics reports raw encoder ticks and heading only. Do not use X/Y displacement for autonomous navigation yet.
 
-## Hardware assumptions requiring bench validation
+## Compatibility and build
 
-- Left drive motors are configured REVERSE and right drive motors FORWARD.
-- Intake uses the `coletor` motor name.
-- The drivetrain uses four REV HD Hex 41 (1291) motors with an external 5:1 reduction.
-- Pinpoint is named `Pinpoint`; physical pod offsets and encoder directions remain unprovided.
+Defined 0.3.1 is added alongside the existing FTC SDK 12.0.0 dependencies. The upstream Defined Quickstart uses SDK 11.2.0, so this combination needs an actual Gradle compile check. The branch includes an Android build workflow to run that check on GitHub Actions.
+
+## Safety
+
+- Pinpoint IMU reset/recalibration must happen while the robot is stationary.
+- Verify motor direction with wheels lifted before driving.
+- Test each actuator separately before using a full TeleOp or Autonomous.
+- No hardware test has been performed by this change.
