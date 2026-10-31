@@ -33,7 +33,9 @@ public final class Robot extends com.teamundefined.defined.ftc.Robot {
 
     @Override
     public void init() {
-        // Subsystems initialize their own hardware in their constructors.
+        // As in the previous Perry OpMode: zero pose and recalibrate IMU during INIT.
+        // The robot must remain completely stationary during this calibration.
+        localization.resetPositionAndImu();
     }
 
     @Override
