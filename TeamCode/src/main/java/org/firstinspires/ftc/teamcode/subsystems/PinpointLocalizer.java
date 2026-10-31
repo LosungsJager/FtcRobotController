@@ -2,14 +2,16 @@ package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import org.firstinspires.ftc.teamcode.config.RobotConfig;
+
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.config.RobotConfig;
 
 /**
- * Thin adapter around the FTC SDK goBILDA Pinpoint driver.
+ * Pinpoint adapter using the settings already present in the team's Perry.java:
+ * 4-Bar pods, zero offsets, and both encoder directions FORWARD.
  *
- * Encoder resolution, pod offsets, and encoder directions are deliberately
- * not guessed here. Configure them only after measuring the installed pods.
+ * Re-measure the physical offsets if the pod mounting or robot geometry changed.
  */
 public final class PinpointLocalizer {
     private final GoBildaPinpointDriver pinpoint;
@@ -19,6 +21,16 @@ public final class PinpointLocalizer {
                 GoBildaPinpointDriver.class,
                 RobotConfig.Hardware.PINPOINT
         );
+
+        // These are inherited from the team's previous Pinpoint implementation.
+        pinpoint.setOffsets(0.0, 0.0, DistanceUnit.MM);
+        pinpoint.setEncoderResolution(
+                GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD
+        );
+        pinpoint.setEncoderDirections(
+                GoBildaPinpointDriver.EncoderDirection.FORWARD,
+                GoBildaPinpointDriver.EncoderDirection.FORWARD
+        );
     }
 
     /** Read a fresh sample. Call once per robot loop. */
@@ -26,17 +38,22 @@ public final class PinpointLocalizer {
         pinpoint.update();
     }
 
-    /** Current heading in degrees. */
+    public double getXMillimeters() {
+        return pinpoint.getPosX(DistanceUnit.MM);
+    }
+
+    public double getYMillimeters() {
+        return pinpoint.getPosY(DistanceUnit.MM);
+    }
+
     public double getHeadingDegrees() {
         return pinpoint.getHeading(AngleUnit.DEGREES);
     }
 
-    /** Raw forward-pod encoder count; useful before calibration. */
     public int getForwardEncoderTicks() {
         return pinpoint.getEncoderX();
     }
 
-    /** Raw strafe-pod encoder count; useful before calibration. */
     public int getStrafeEncoderTicks() {
         return pinpoint.getEncoderY();
     }
@@ -55,13 +72,5 @@ public final class PinpointLocalizer {
      */
     public void resetPositionAndImu() {
         pinpoint.resetPosAndIMU();
-    }
-
-    /**
-     * Exposes the SDK driver for a future calibration step after the pod model,
-     * measured offsets, and encoder directions have been confirmed.
-     */
-    public GoBildaPinpointDriver getDriver() {
-        return pinpoint;
     }
 }
