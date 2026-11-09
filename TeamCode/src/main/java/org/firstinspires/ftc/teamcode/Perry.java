@@ -5,18 +5,12 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-
-import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
-
+import com.qualcomm.robotcore.hardware.Servo;
 
 @TeleOp(name = "Perry", group = "1_Lösungsjäger")
 public class Perry extends LinearOpMode {
 
-    private static final double REDUCAO = 5.23;
+    private static final double REDUCAO = 5.0;
 
     private static final double DIAMETRO_RODA_MM = 104.0;
 
@@ -34,18 +28,25 @@ public class Perry extends LinearOpMode {
 
     private static final double ZONA_MORTA = 0.06;
 
-    private static final double LIMITE_POTENCIA_INTAKE = -0.95;   // 0.0 a 1.0
+    private static final double POTENCIA_INTAKE = 0.95; // Inverta o sinal se o intake girar ao contrário.
+    private static final double POTENCIA_SAIDA = -1.7;
 
-    private static final double GANHO_CORRECAO = 0.2;
-    private static final double GIRO_MAX_CORRECAO = 0.2;
+    // Ajuste fino da tração. Comece em 1.00; aumente a roda fraca em passos de 0.02.
+    private static final double AJUSTE_ESQ_F = 0.20;
+    private static final double AJUSTE_ESQ_T = 0.30;
+    private static final double AJUSTE_DIR_F = 0.50;
+    private static final double AJUSTE_DIR_T = 0.70;
 
-    private DcMotorEx esq_f, esq_t, dir_f, dir_t, giro1, giro2;   // esquerda/direita, frente/trás
-    private GoBildaPinpointDriver pinpoint;
+    private static final double POS_TRAVAR_RAMPA = 0.2;
 
-    private boolean fieldCentric = false;
-    private boolean yAnterior = false;
-    private double headingAlvo = 0.0;
-    private boolean travandoHeading = false;
+    private static final double PEGAR_RAMPA = 0.78;
+
+    // Corrige a tendência de virar à esquerda durante avanço/ré.
+    // Valor positivo aplica uma leve correção para a direita.
+    private static final double TRIM_GIRO_AVANCO = 0.2;
+
+    private DcMotorEx esq_f, esq_t, dir_f, dir_t, giro1, giro2, intake;   // esquerda/direita, frente/trás
+    private Servo rampa1, rampa2;
 
     @Override
     public void runOpMode() {
@@ -62,10 +63,7 @@ public class Perry extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-            pinpoint.update();
-
             atualizarAjusteVelocidade();
-            atualizarModoDirecao();
             dirigir();
             controlarIntake();
             mostrarTelemetria();
@@ -80,7 +78,9 @@ public class Perry extends LinearOpMode {
         dir_t = hardwareMap.get(DcMotorEx.class, "dir_t");
         giro1 = hardwareMap.get(DcMotorEx.class, "giro1");
         giro2 = hardwareMap.get(DcMotorEx.class, "giro2");
-
+        intake = hardwareMap.get(DcMotorEx.class, "int");
+        rampa1 = hardwareMap.get(Servo.class, "rampa1");
+        rampa2 = hardwareMap.get(Servo.class, "rampa2");
 
         // lado esquerdo gira invertido
         esq_f.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -88,32 +88,17 @@ public class Perry extends LinearOpMode {
         dir_f.setDirection(DcMotorSimple.Direction.FORWARD);
         dir_t.setDirection(DcMotorSimple.Direction.FORWARD);
         giro1.setDirection(DcMotorSimple.Direction.REVERSE);
-        giro2.setDirection(DcMotorSimple.Direction.FORWARD);
+        giro2.setDirection(DcMotorSimple.Direction.REVERSE);
+        intake.setDirection(DcMotorSimple.Direction.REVERSE);
+        rampa1.setPosition(POS_TRAVAR_RAMPA);
+        rampa2.setPosition(POS_TRAVAR_RAMPA);
 
-        for (DcMotorEx m : new DcMotorEx[]{esq_f, esq_t, dir_f, dir_t, giro1, giro2}) {
+        for (DcMotorEx m : new DcMotorEx[]{esq_f, esq_t, dir_f, dir_t, giro1, giro2, intake}) {
             m.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             m.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
             m.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
-
-
-        pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
-
-        pinpoint.setOffsets(0.0, 0.0, DistanceUnit.MM);
-
-        pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-
-        pinpoint.setEncoderDirections(
-                GoBildaPinpointDriver.EncoderDirection.FORWARD,
-                GoBildaPinpointDriver.EncoderDirection.FORWARD
-        );
-
-        // Calibra o IMU interno — o robô PRECISA estar imóvel aqui.
-        pinpoint.resetPosAndIMU();
-        sleep(300);
-
-
     }
 
     private void atualizarAjusteVelocidade() {
@@ -126,21 +111,10 @@ public class Perry extends LinearOpMode {
         velocidadeMaxima = Math.max(VEL_MINIMA, Math.min(VEL_MAXIMA, velocidadeMaxima));
     }
 
-    private void atualizarModoDirecao() {
-        boolean yAgora = gamepad1.y;
-        if (yAgora && !yAnterior) {
-            fieldCentric = !fieldCentric;
-        }
-        yAnterior = yAgora;
-        if (gamepad1.start) {
-            pinpoint.resetPosAndIMU();
-        }
-    }
-    
     private void dirigir() {
 
-        double avanco = -gamepad1.left_stick_y;
-        double lado   =  gamepad1.left_stick_x;
+        double avanco =  gamepad1.left_stick_y;
+        double lado   =  gamepad1.left_stick_x *1.1 ;
         double giro   =  gamepad1.right_stick_x;
 
 
@@ -148,45 +122,28 @@ public class Perry extends LinearOpMode {
         lado   = zonaMorta(lado);
         giro   = zonaMorta(giro);
 
-        double headingAtual = pinpoint.getHeading(AngleUnit.RADIANS);
-
-        if (Math.abs(giro) > 0.001) {
-            travandoHeading = false;
-        } else {
-            if (!travandoHeading) {
-                headingAlvo = headingAtual;
-                travandoHeading = true;
-            }
-            double erro = anguloNormalizado(headingAlvo - headingAtual);
-            double correcao = erro * GANHO_CORRECAO / 0.5; // escala compatível com o loop
-            correcao = Math.max(-GIRO_MAX_CORRECAO, Math.min(GIRO_MAX_CORRECAO, correcao));
-            giro = correcao;
+        // Quando o piloto não comanda giro, mantém o trajeto reto durante avanço ou ré.
+        if (Math.abs(giro) < ZONA_MORTA && Math.abs(avanco) >= ZONA_MORTA) {
+            giro = TRIM_GIRO_AVANCO * avanco;
         }
-
-        if (fieldCentric) {
-            double cos = Math.cos(-headingAtual);
-            double sen = Math.sin(-headingAtual);
-
-            double novoLado   = lado * cos - avanco * sen;
-            double novoAvanco = lado * sen + avanco * cos;
-
-            lado = novoLado;
-            avanco = novoAvanco;
-        }
-
-        lado *= 1.1;
 
         double pEsqF = avanco + lado + giro;
         double pEsqT = avanco - lado + giro;
         double pDirF = avanco - lado - giro;
         double pDirT = avanco + lado - giro;
 
+        // Compensa diferenças mecânicas entre rodas antes da normalização.
+        pEsqF *= AJUSTE_ESQ_F;
+        pEsqT *= AJUSTE_ESQ_T;
+        pDirF *= AJUSTE_DIR_F;
+        pDirT *= AJUSTE_DIR_T;
+
         double maior = Math.max(1.0, Math.max(
                 Math.max(Math.abs(pEsqF), Math.abs(pEsqT)),
                 Math.max(Math.abs(pDirF), Math.abs(pDirT))));
 
         double fator = velocidadeMaxima;
-        if (gamepad1.left_bumper) {
+        if (gamepad1.left_stick_button) {
             fator *= FATOR_PRECISAO;
         }
 
@@ -210,28 +167,32 @@ public class Perry extends LinearOpMode {
 
 
     private void controlarIntake() {
-        if (gamepad1.right_bumper) {
-            giro1.setPower(LIMITE_POTENCIA_INTAKE);
-            //giro2.setPower(LIMITE_POTENCIA_INTAKE);
+        if (gamepad2.right_bumper) {
+            intake.setPower(POTENCIA_INTAKE);
         } else {
-            giro1.setPower(0.0);
-            //giro2.setPower(0.0);
+            intake.setPower(0.0);
         }
-        if (gamepad1.left_bumper) {
-            giro2.setPower(LIMITE_POTENCIA_INTAKE);
-        } else {
+        if (gamepad2.left_bumper) {
+            giro1.setPower(POTENCIA_SAIDA / 25);
+            giro2.setPower(-POTENCIA_SAIDA / 25);
+        } else if (gamepad2.left_trigger > 0.1) {
+            giro1.setPower(POTENCIA_SAIDA / 50);
+            giro2.setPower(-POTENCIA_SAIDA / 50);
+        } else{
+            giro1.setPower(0.0);
             giro2.setPower(0.0);
-            }
+        }
+        if (gamepad2.a) {
+            rampa1.setPosition(PEGAR_RAMPA);
+            rampa2.setPosition(PEGAR_RAMPA);
+        } else if (gamepad2.x) {
+            rampa1.setPosition(POS_TRAVAR_RAMPA);
+            rampa2.setPosition(POS_TRAVAR_RAMPA);
+        }
     }
 
     private double zonaMorta(double valor) {
         return Math.abs(valor) < ZONA_MORTA ? 0.0 : valor;
-    }
-
-    private double anguloNormalizado(double radianos) {
-        while (radianos > Math.PI) radianos -= 2 * Math.PI;
-        while (radianos < -Math.PI) radianos += 2 * Math.PI;
-        return radianos;
     }
 
     private double velocidadeLivreMs() {
@@ -242,24 +203,17 @@ public class Perry extends LinearOpMode {
 
 
     private void mostrarTelemetria() {
-        Pose2D pos = pinpoint.getPosition();
-
-        telemetry.addData("Modo", fieldCentric ? "FIELD-CENTRIC" : "robot-centric");
         telemetry.addData("Velocidade", "%.0f%%%s",
                 velocidadeMaxima * 100,
-                gamepad1.left_bumper ? "  [PRECISÃO]" : "");
-        telemetry.addLine();
-        telemetry.addData("Posição X", "%.1f mm", pos.getX(DistanceUnit.MM));
-        telemetry.addData("Posição Y", "%.1f mm", pos.getY(DistanceUnit.MM));
-        telemetry.addData("Ângulo", "%.1f°", pos.getHeading(AngleUnit.DEGREES));
-        telemetry.addLine();
+                gamepad1.left_stick_button ? "  [PRECISÃO]" : "");
         telemetry.addData("Ticks/volta na roda", "%.0f", TICKS_POR_VOLTA);
-        telemetry.addData("Status Pinpoint", pinpoint.getDeviceStatus());
+        telemetry.addData("Ajuste rodas", "EF %.2f | ET %.2f | DF %.2f | DT %.2f",
+                AJUSTE_ESQ_F, AJUSTE_ESQ_T, AJUSTE_DIR_F, AJUSTE_DIR_T);
+        telemetry.addData("Trim de giro", "%.2f", TRIM_GIRO_AVANCO);
         telemetry.addLine();
-        telemetry.addData("Heading-lock", travandoHeading ? "ATIVO (corrigindo)" : "livre (girando)");
-        telemetry.addLine();
-        telemetry.addData("Coletor", gamepad1.right_bumper ? "GIRANDO" : "parado");
-        telemetry.addData("Limite de potência do lançador", "%.0f%%", LIMITE_POTENCIA_INTAKE * 100);
+        telemetry.addData("Intake (RB)", gamepad2.right_bumper ? "GIRANDO" : "parado");
+        telemetry.addData("Saída (LB)", gamepad2.left_bumper ? "GIRANDO" : "parada");
+        telemetry.addData("Precisão (pressionar L3)", gamepad1.left_stick_button ? "ATIVA" : "desativada");
         telemetry.update();
     }
 }
